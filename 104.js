@@ -72,6 +72,10 @@ async function scrollPage(){
 
         console.log(`offset = ${offset}, currentHeight = ${currentHeight}`);
 
+        if( offset > 300 ){
+            break;
+        }
+
         //接近底部時，按下一頁
         if( (currentHeight - offset) < 2000 && await nightmare.exists('button.b-btn.b-btn--link.js-more-page')){
             await _checkPagination();
@@ -125,6 +129,33 @@ async function parseHtml(){
     });
 }
 
+//接續先前整理的陣列，再繼續往下取得進階資訊
+async function getDetailInfo(){
+    for(let i = 0; i < arrLink.length; i++){
+        //前往影片播放頁面，並取得頁面 html 字串
+        let html = await nightmare
+        .goto(arrLink[i].positionLink)
+        .wait('div.job-description-table.row div.row.mb-2')
+        .evaluate(() => {
+            return document.documentElement.innerHTML;
+        });
+
+        //取得上班地點
+        let positionPlace = $(html)
+        .find('div.job-description-table.row div.row.mb-2:eq(3) p.t3.mb-0')
+        .text().trim();
+
+        //取得職務類別
+        let positionCategory = $(html)
+        .find('div.job-description-table.row div.row.mb-2:eq(0) div.col.p-0.job-description-table__data')
+        .text().trim();
+
+        //新增屬性
+        arrLink[i].positionPlace = positionPlace;
+        arrLink[i].positionCategory = positionCategory;
+    }
+}
+
 //關閉 nightmare
 async function close(){
     await nightmare.end(() => {
@@ -144,6 +175,7 @@ try {
         setJobType, 
         scrollPage, 
         parseHtml,
+        getDetailInfo,
         close
     ]).then(async () =>{
         console.dir(arrLink, {depth: null});
