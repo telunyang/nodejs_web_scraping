@@ -36,3 +36,5 @@ $ npm i --save
 [![[nodejs][nightmare] 網路爬蟲線上讀書會 - 104人力銀行 - Part 1](https://i.ytimg.com/vi/mb9TZ8RwnrI/hqdefault.jpg "[nodejs][nightmare] 網路爬蟲線上讀書會 - 104人力銀行 - Part 1")](https://www.youtube.com/watch?v=mb9TZ8RwnrI)
 3. [[nodejs][curl] 網路爬蟲線上讀書會 - WineSearcher 紅酒詢價網站、維基百科三國演義人物列表](https://www.youtube.com/watch?v=68lKqmlhpTQ "[nodejs][curl] 網路爬蟲線上讀書會 - WineSearcher 紅酒詢價網站、維基百科三國演義人物列表")
 [![[nodejs][curl] 網路爬蟲線上讀書會 - WineSearcher 紅酒詢價網站、維基百科三國演義人物列表](https://i.ytimg.com/vi/68lKqmlhpTQ/hqdefault.jpg "[nodejs][curl] 網路爬蟲線上讀書會 - WineSearcher 紅酒詢價網站、維基百科三國演義人物列表")](https://www.youtube.com/watch?v=68lKqmlhpTQ)
+4. [[nodejs][nightmare] 網路爬蟲線上讀書會 - YouTube、104人力銀行 - Part 2 (End)](https://www.youtube.com/watch?v=fgZsabTZzHs "[nodejs][nightmare] 網路爬蟲線上讀書會 - YouTube、104人力銀行 - Part 2 (End)")
+[![[nodejs][nightmare] 網路爬蟲線上讀書會 - YouTube、104人力銀行 - Part 2 (End)](https://i.ytimg.com/vi/fgZsabTZzHs/hqdefault.jpg "[nodejs][nightmare] 網路爬蟲線上讀書會 - YouTube、104人力銀行 - Part 2 (End)")](https://www.youtube.com/watch?v=fgZsabTZzHs)
