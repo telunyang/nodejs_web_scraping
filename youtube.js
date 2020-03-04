@@ -65,7 +65,7 @@ async function step3(){
         offset += 500;
         await nightmare.scrollTo(offset, 0).wait(500);
 
-        if(offset > 2000){
+        if(offset > 1000){
             break; //滾動一段高度後，強迫跳出迴圈；視情況使用
         }
     }
@@ -120,8 +120,52 @@ async function step4(){
     });
 }
 
-//關閉 nightmare
+//接續先前整理的陣列，再繼續往下取得進階資訊
 async function step5(){
+    for(let i = 0; i < arrLink.length; i++){
+        //前往影片播放頁面，並取得頁面 html 字串
+        let html = await nightmare
+        .goto(arrLink[i].link)
+        .wait('div#count.style-scope.ytd-video-primary-info-renderer span.view-count.style-scope.yt-view-count-renderer')
+        .evaluate(() => {
+            return document.documentElement.innerHTML;
+        });
+
+        //取得觀看次數的字串(未整理) eg. 觀看次數：545,056次
+        let strPageView = $(html)
+        .find('div#count.style-scope.ytd-video-primary-info-renderer span.view-count.style-scope.yt-view-count-renderer')
+        .text();
+
+        //取得觀看次數
+        let pattern = /[0-9,]+/g;
+        let match = null;
+        match = pattern.exec(strPageView);
+        strPageView = match[0];
+        strPageView = strPageView.replace(/,/g, ''); //剩下 '545056'
+
+        //取得按讚次數
+        let strLikeCount = $(html).find('div#top-level-buttons yt-formatted-string#text:eq(0)').attr('aria-label');
+        pattern = /[0-9,]+/g;
+        match = pattern.exec(strLikeCount);
+        strLikeCount = match[0];
+        strLikeCount = strLikeCount.replace(/,/g, '');
+
+        //取得不喜歡次數
+        let strUnlikeCount = $(html).find('div#top-level-buttons yt-formatted-string#text:eq(1)').attr('aria-label');
+        pattern = /[0-9,]+/g;
+        match = pattern.exec(strUnlikeCount);
+        strUnlikeCount = match[0];
+        strUnlikeCount = strUnlikeCount.replace(/,/g, '');
+
+        //建立新屬性
+        arrLink[i].pageView = parseInt(strPageView);
+        arrLink[i].likeCount = parseInt(strLikeCount);
+        arrLink[i].unlikeCount = parseInt(strUnlikeCount);
+    }
+}
+
+//關閉 nightmare
+async function close(){
     await nightmare.end((err) => {
         if(err){ throw err; }
         console.log('關閉 nightmare...');
@@ -135,13 +179,11 @@ async function asyncArray(functionList){
 }
 
 try {
-    asyncArray([step1, step2, step3, step4, step5]).then(async ()=>{
+    asyncArray([step1, step2, step3, step4, step5, close]).then(async ()=>{
         console.dir(arrLink, {depth: null});
 
-        //若是檔案不存在，則新增檔案，同時寫入內容
-        if( !fs.existsSync(`downloads/youtube.json`) ){
-            await writeFile(`downloads/youtube.json`, JSON.stringify(arrLink, null, 4));
-        }
+        //新增檔案，同時寫入內容
+        await writeFile(`downloads/youtube.json`, JSON.stringify(arrLink, null, 4));
 
         console.log('Done');
     });
