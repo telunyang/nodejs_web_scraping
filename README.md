@@ -5,6 +5,7 @@
 ## 用途
 1. 線上讀書會 [Facebook社團連結（目前僅供熟人加入）]("https://www.facebook.com/groups/291485005162374/" "Facebook社團連結")
 2. 為 node.js 開發者建立的深度爬蟲操作範例
+3. 爬取結果轉換成 JSON，可以進行資料交換，或是存置在 NoSQL 環境
 
 ## 範例操作環境
 - Windows 10
