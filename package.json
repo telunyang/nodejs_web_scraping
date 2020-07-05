@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/telunyang/nodejs_web_scraping#readme",
   "dependencies": {
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "jsdom": "^16.2.0",
     "moment": "^2.24.0",
     "nightmare": "^3.0.2"
