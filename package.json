@@ -1,14 +1,14 @@
 {
-  "name": "nodejs_web_crawler",
+  "name": "nodejs_web_scraping",
   "version": "1.0.0",
-  "description": "Web crawler for Node.js",
+  "description": "Web scraping for Node.js",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/telunyang/nodejs_web_crawler.git"
+    "url": "git+https://github.com/telunyang/nodejs_web_scraping.git"
   },
   "keywords": [
     "web",
@@ -21,9 +21,9 @@
   "author": "DarrenYang (telunyang@gmail.com)",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/telunyang/nodejs_web_crawler/issues"
+    "url": "https://github.com/telunyang/nodejs_web_scraping/issues"
   },
-  "homepage": "https://github.com/telunyang/nodejs_web_crawler#readme",
+  "homepage": "https://github.com/telunyang/nodejs_web_scraping#readme",
   "dependencies": {
     "jquery": "^3.4.1",
     "jsdom": "^16.2.0",
