@@ -2,7 +2,7 @@ const fs = require('fs');
 const util = require('util');
 const moment = require('moment');
 
-//將 exec 非同步化 (可以使用 await，以及 .then, .catch)
+//將 exec 非同步化 promisify (可以使用 await，以及 .then, .catch)
 const exec = util.promisify(require('child_process').exec);
 
 //引入 jQuery 機制
@@ -32,7 +32,14 @@ let arrUrl = [
 (
     async function () {
         for(let url of arrUrl){
-            let {stdout, stderr} = await exec(`curl -X GET ${url} -L -H "User-Agent: ${headers['User-Agent']}" -H "Accept-Language: ${headers['Accept-Language']}" -H "Accept: ${headers['Accept']}" -H "Cookie: ${headers['Cookie']}"`);
+            let {stdout, stderr} = await exec(
+                `curl ` + 
+                `-X GET ${url} ` +
+                `-L ` + 
+                `-H "User-Agent: ${headers['User-Agent']}" ` + 
+                `-H "Accept-Language: ${headers['Accept-Language']}" ` + 
+                `-H "Accept: ${headers['Accept']}" ` + 
+                `-H "Cookie: ${headers['Cookie']}" `);
             let strChartData = ''; //價格 json 文字資料
             let dataChartData = {}; //將 json 轉成物件型態
             let arrMain = []; //放置價格物件的陣列

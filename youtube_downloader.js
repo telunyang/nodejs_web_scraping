@@ -1,7 +1,6 @@
 const util = require('util');
 const fs = require('fs');
 const exec = util.promisify( require('child_process').exec );
-const readFile = util.promisify(fs.readFile);
 
 (
     async function () {

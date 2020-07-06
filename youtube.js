@@ -1,6 +1,5 @@
 const Nightmare = require('nightmare');
 const nightmare = Nightmare({ show: true, width: 1280, height: 1024 });
-const util = require('util');
 const fs = require('fs');
 
 //引入 jQuery 機制
@@ -9,9 +8,7 @@ const { JSDOM } = jsdom;
 const { window } = new JSDOM();
 const $ = require('jquery')(window);
 
-//使工具擁有 promise 的特性
-const writeFile = util.promisify(fs.writeFile);
-
+//設定 request headers
 const headers = {
     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
     'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
@@ -19,24 +16,20 @@ const headers = {
 };
 
 //放置網頁元素(物件)
-let arrLink = [];
+const arrLink = [];
 
 //關鍵字
 let strSinger = '張學友';
 
 //初始化設定
-async function step1(){
-    try{
-        if( !fs.existsSync(`downloads`) ){
-            fs.mkdirSync(`downloads`);
-        }
-    } catch (err) {
-        throw err;
+async function init(){
+    if( !fs.existsSync(`downloads`) ){
+        fs.mkdirSync(`downloads`);
     }
 }
 
 //搜尋關鍵字
-async function step2(){
+async function search(){
     console.log(`準備搜尋…`);
 
     await nightmare
@@ -49,7 +42,7 @@ async function step2(){
 }
 
 //滾動頁面，將動態資料逐一顯示出來
-async function step3(){
+async function scroll(){
     console.log(`準備滾動頁面`);
 
     let currentHeight = 0; //window 裡面內容的當前總高度
@@ -72,7 +65,7 @@ async function step3(){
 }
 
 //分析、整理、收集重要資訊
-async function step4(){
+async function parse(){
     console.log(`分析、整理、收集重要資訊...`);
 
     let html = await nightmare.evaluate(() => {
@@ -121,7 +114,7 @@ async function step4(){
 }
 
 //接續先前整理的陣列，再繼續往下取得進階資訊
-async function step5(){
+async function visit(){
     for(let i = 0; i < arrLink.length; i++){
         //前往影片播放頁面，並取得頁面 html 字串
         let html = await nightmare
@@ -172,21 +165,22 @@ async function close(){
     });
 }
 
+//透過迴圈特性，將陣列中的各個 function 透過 await 逐一執行
 async function asyncArray(functionList){
     for(let func of functionList){
         await func();
     }
 }
 
-try {
-    asyncArray([step1, step2, step3, step4, step5, close]).then(async ()=>{
-        console.dir(arrLink, {depth: null});
-
-        //新增檔案，同時寫入內容
-        await writeFile(`downloads/youtube.json`, JSON.stringify(arrLink, null, 4));
-
-        console.log('Done');
-    });
-} catch (err){
-    throw err;
-}
+(
+    async function (){
+        await asyncArray([init, search, scroll, parse, visit, close]).then(async ()=>{
+            console.dir(arrLink, {depth: null});
+    
+            //新增檔案，同時寫入內容
+            await fs.writeFileSync(`downloads/youtube.json`, JSON.stringify(arrLink, null, 4));
+    
+            console.log('Done');
+        });
+    }
+)();
