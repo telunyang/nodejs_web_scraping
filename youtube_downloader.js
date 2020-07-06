@@ -4,7 +4,7 @@ const exec = util.promisify( require('child_process').exec );
 
 (
     async function () {
-        let strJson = await readFile('downloads/youtube.json', { encoding: 'utf-8' });
+        let strJson = await fs.readFileSync('downloads/youtube.json', { encoding: 'utf-8' });
         let arrJson = JSON.parse(strJson);
         // console.dir(arrJson, {depth: null});
 
