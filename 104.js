@@ -1,6 +1,5 @@
 const Nightmare = require('nightmare');
-const nightmare = Nightmare({ show: true, width: 1280, height: 1024 });
-const util = require('util');
+const nightmare = Nightmare({ show: true, width: 1280, height: 960 });
 const fs = require('fs');
 
 //引入 jQuery 機制
@@ -8,9 +7,6 @@ const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
 const { window } = new JSDOM();
 const $ = require('jquery')(window);
-
-//使工具擁有 promise 的特性
-const writeFile = util.promisify(fs.writeFile);
 
 const headers = {
     'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
@@ -23,6 +19,14 @@ let arrLink = [];
 
 //關鍵字
 let strKeyword = 'node.js';
+
+//初始化設定
+async function init(){
+    //若沒有資料夾，則新增
+    if( ! await fs.existsSync(`downloads`) ){
+        await fs.mkdirSync(`downloads`, {recursive: true});
+    }
+}
 
 //進行檢索(搜尋職缺名稱)
 async function search(){
@@ -51,34 +55,44 @@ async function search(){
 async function setJobType(){
     console.log('選擇全職、兼職等選項');
 
+    //點選全職
     await nightmare
-    .wait(2000)
-    .click('ul#js-job-tab > li[data-value="1"]'); //點選全職
+    .wait(3000)
+    .click('ul#js-job-tab > li[data-value="1"]')
+    .wait(3000); 
 }
 
 //滾動頁面，將動態資料逐一顯示出來
 async function scrollPage(){
     console.log('滾動頁面，將動態資料逐一顯示出來');
 
-    let currentHeight = 0;
-    let offset = 0;
+    /**
+     * innertHeightOfWindow: 視窗內 document 區域的內部高度
+     * totalOffset: 目前滾動的距離
+     */
+    let innerHeightOfWindow = 0, totalOffset = 0;
 
-    while(offset <= currentHeight){
-        currentHeight = await nightmare.evaluate(() => {
+    while(totalOffset <= innerHeightOfWindow){
+        //取得視窗內 document 區域的內部高度
+        innerHeightOfWindow = await nightmare.evaluate(() => {
             return document.documentElement.scrollHeight;
         });
-        offset += 500;
-        await nightmare.scrollTo(offset, 0).wait(500);
+        //增加滾動距離的數值
+        totalOffset += 500;
 
-        console.log(`offset = ${offset}, currentHeight = ${currentHeight}`);
+        //滾動到 totalOffset 指定的距離
+        await nightmare.scrollTo(totalOffset, 0).wait(500);
 
-        if( offset > 300 ){
-            break;
-        }
+        console.log(`totalOffset = ${totalOffset}, innerHeightOfWindow = ${innerHeightOfWindow}`);
 
         //接近底部時，按下一頁
-        if( (currentHeight - offset) < 2000 && await nightmare.exists('button.b-btn.b-btn--link.js-more-page')){
+        if( (innerHeightOfWindow - totalOffset) < 2000 && await nightmare.exists('button.b-btn.b-btn--link.js-more-page')){
             await _checkPagination();
+        }
+
+        //測試用，滾動的距離超過 300，則 scroll() 執行完畢
+        if( totalOffset > 300 ){
+            break;
         }
     }
 }
@@ -106,15 +120,28 @@ async function parseHtml(){
     $(html)
     .find('div#js-job-content article')
     .each((index, element) => {
+        //取得主要資料的 css selector 區域，作為 jQuery 物件
         let elm = $(element).find('div.b-block__left');
 
-        let position = elm.find('h2.b-tit a.js-job-link').text(); //職缺名稱
-        let positionLink = 'https:' + elm.find('h2.b-tit a.js-job-link').attr('href');
-        let location = elm.find('ul.b-list-inline.b-clearfix.job-list-intro.b-content li:eq(0)').text();
-        let companyName = elm.find('ul.b-list-inline.b-clearfix li a').text().trim();
-        let companyLink = 'https:' + elm.find('ul.b-list-inline.b-clearfix li a').attr('href');
-        let category = elm.find('ul.b-list-inline.b-clearfix li:eq(2)').text();
+        //職缺名稱
+        let position = elm.find('h2.b-tit a.js-job-link').text();
 
+        //職缺超連結
+        let positionLink = 'https:' + elm.find('h2.b-tit a.js-job-link').attr('href'); 
+
+        //上班地點
+        let location = elm.find('ul.b-list-inline.b-clearfix.job-list-intro.b-content li:eq(0)').text(); 
+
+        //公司名稱
+        let companyName = elm.find('ul.b-list-inline.b-clearfix li a').text().trim(); 
+
+        //公司連結
+        let companyLink = 'https:' + elm.find('ul.b-list-inline.b-clearfix li a').attr('href'); 
+
+        //產業別
+        let category = elm.find('ul.b-list-inline.b-clearfix li:eq(2)').text(); 
+
+        //將所有資料以 key-value 格式儲存
         obj.keyword = strKeyword;
         obj.position = position;
         obj.positionLink = positionLink;
@@ -123,8 +150,10 @@ async function parseHtml(){
         obj.companyLink = companyLink;
         obj.category = category;
 
+        //放到主要陣列中
         arrLink.push(obj);
 
+        //儲存資訊用的物件化(清空資料)
         obj = {};
     });
 }
@@ -146,11 +175,16 @@ async function getDetailInfo(){
         .text().trim();
 
         //取得職務類別
-        let positionCategory = $(html)
-        .find('div.job-description-table.row div.row.mb-2:eq(0) div.col.p-0.job-description-table__data')
-        .text().trim();
+        let positionCategory = '';
+        let arrTmpConcat = [];
+        $(html).find('div.col.p-0.job-description-table__data > div > div > div > u')
+        .each(function(index, element){
+            arrTmpConcat.push($(element).text().trim());
+        });
+        positionCategory = arrTmpConcat.join(',');
+        
 
-        //新增屬性
+        //在既有 arrLink 陣列當中的各個物件（{key:value, key: value}）中，新增屬性和值
         arrLink[i].positionPlace = positionPlace;
         arrLink[i].positionCategory = positionCategory;
     }
@@ -171,6 +205,7 @@ async function asyncArray(functionList){
 
 try {
     asyncArray([
+        init,
         search, 
         setJobType, 
         scrollPage, 
@@ -179,9 +214,7 @@ try {
         close
     ]).then(async () =>{
         console.dir(arrLink, {depth: null});
-        
-        await writeFile(`downloads/104.json`, JSON.stringify(arrLink, null, 4));
-
+        await fs.writeFileSync(`downloads/104.json`, JSON.stringify(arrLink, null, 4));
         console.log('Done');
     });
 } catch (err){
