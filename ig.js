@@ -1,8 +1,13 @@
+//瀏覽器自動化工具
 const Nightmare = require('nightmare');
 const nightmare = Nightmare({ show: true, width: 1024, height: 960 });
+
+//常用套件
 const fs = require('fs');
 const util = require('util');
 const exec = util.promisify( require('child_process').exec );
+
+//雜湊套件
 const crypto = require('crypto');
 
 //引入 jQuery 機制
@@ -24,11 +29,11 @@ const config = require("./ig_config.js");
 //放置網頁元素(物件)
 const arrData = [], arrLink = [];
 
-//放置
+//暫時存放 key-value 格式的圖片、影片資訊的物件
 let objTmp = {};
 
 //目標網址(要抓取資料的網址)
-const url = "https://www.instagram.com/english.ig_/?hl=zh-tw";
+const url = "https://www.instagram.com/ntu.library/";
 
 //初始化設定
 async function init(){
@@ -46,17 +51,12 @@ async function login(){
     .type('input[name="username"]', config.username)
     .type('input[name="password"]', config.password)
     .wait(3000)
-    .click('button[type="submit"].sqdOP.L3NKy.y3zKF')
-    .wait(3000);
-
-    if( await nightmare.exists('div.cmbtv button.sqdOP.yWX7d.y3zKF') ){
-        await nightmare.click('div.cmbtv button.sqdOP.yWX7d.y3zKF');
-    }
+    .click('button[type="submit"].sqdOP.L3NKy.y3zKF');
 }
 
 //走訪頁面(前往目標網址)
 async function visit(){
-    await nightmare.goto(url, headers);
+    await nightmare.wait(2000).goto(url, headers);
 }
 
 //滾動畫面
@@ -64,17 +64,28 @@ async function scroll(){
     //等待第一列 (3 個照片元素為 1 列)
     await nightmare.wait('div.Nnq7C.weEfm');
 
+    /**
+     * innertHeightOfWindow: 視窗內 document 區域的內部高度
+     * totalOffset: 目前滾動的距離
+     */
     let innerHeightOfWindow = 0, totalOffset = 0;
 
+    //
     while(totalOffset <= innerHeightOfWindow){
+        //取得視窗內 document 區域的內部高度
         innerHeightOfWindow = await nightmare.evaluate(() => {
             return document.documentElement.scrollHeight;
         });
+
+        //增加滾動距離的數值
         totalOffset += 500;
+
+        //滾動到 totalOffset 指定的距離
         await nightmare.scrollTo(totalOffset, 0).wait(500);
 
         console.log(`totalOffset = ${totalOffset}, innerHeightOfWindow = ${innerHeightOfWindow}`);
 
+        //測試用，滾動的距離超過 300，則 scroll() 執行完畢，往下一個 function 繼續執行
         if( totalOffset > 300 ){
             break;
         }
@@ -83,15 +94,20 @@ async function scroll(){
 
 //取得每個項目的 url
 async function getUrl(){
-    //取得滾動後，得到動態產生結果的 html 元素
+    //取得動態產生結果的 html 元素
     let html = await nightmare.evaluate(function() {
         return document.documentElement.innerHTML;
     });
     
+    //走訪目前網頁上可見的圖片、影片連結項目
     $(html).find('div.Nnq7C.weEfm div.v1Nh3.kIKUG._bz0w').each(function(index, element){
         $(element).find('a').each(function(idx, elm){
-            let aLink = $(elm).attr("href");
+            //取得項目 a 當中 href 屬性的值
+            let aLink = $(elm).attr('href');
+
             console.log(`取得網址: ${aLink}`);
+
+            //將網頁上每個項目的超連結，都放到 arrLink 當中
             arrLink.push('https://www.instagram.com' + aLink);
         });
     });
@@ -99,6 +115,7 @@ async function getUrl(){
 
 //逐個網頁連結內容進行分析
 async function parse(){
+    //走訪每個超連結
     for(let aLink of arrLink){
         //走訪頁面
         await nightmare.goto(aLink, headers);
@@ -109,8 +126,10 @@ async function parse(){
         let pageId = match[1];
         console.log(`網頁連結: ${aLink}, ID: ${match[1]}`);
 
+        //強制等待
         await nightmare.wait(2000);
 
+        //清空暫時存放 key-value 格式的圖片、影片資訊的物件
         objTmp = {};
 
         /**
@@ -134,6 +153,10 @@ async function parse(){
                 return document.documentElement.innerHTML;
             });
 
+            /**
+             * 如果連結中只有單一圖片，則直接取得 article 底下 img.FFVAD 的 src 來儲存
+             * 如果連結只只有單一影片，只直接取得 article 底下 video.tWeCl 的 src 來儲存
+             */
             if ( await nightmare.exists('article.QBXjJ.M9sTE.L_LMM.JyscU.ePUX4 img.FFVAD') ){
                 //取得 img 連結
                 let imgSrc = $(html).find('article.QBXjJ.M9sTE.L_LMM.JyscU.ePUX4 img.FFVAD').attr('src');
@@ -143,13 +166,6 @@ async function parse(){
 
                 //建立 img 的 key-value
                 objTmp[strKey] = imgSrc;
-
-                //新增元素資訊到 arrData
-                arrData.push({
-                    "id": pageId,
-                    "url": aLink,
-                    "content": objTmp
-                });
             } else if ( await nightmare.exists('article.QBXjJ.M9sTE.L_LMM.JyscU.ePUX4 video.tWeCl') ) {
                 //取得 video 連結
                 let videoSrc = $(html).find('article.QBXjJ.M9sTE.L_LMM.JyscU.ePUX4 video.tWeCl').attr('src');
@@ -159,14 +175,14 @@ async function parse(){
                 
                 //建立 video 的 key-value
                 objTmp[strKey] = videoSrc;
-
-                //新增元素資訊到 arrData
-                arrData.push({
-                    "id": pageId,
-                    "url": aLink,
-                    "content": objTmp
-                });
             }
+
+            //新增元素資訊到 arrData
+            arrData.push({
+                "id": pageId,
+                "url": aLink,
+                "content": objTmp
+            });
         }
     }
 }
@@ -184,16 +200,20 @@ async function _parseMultipleItems(){
         });
 
         /**
-         * 結合雜湊功能，建立 objTmp 的 key，
-         * 再將元素裡面的屬性值，視為 value 整合在 objTmp[key] 當中
+         * 檢視各個 li，
+         * 記得 .each() 裡面的 callback function 為 async 關鍵字開頭，
+         * 是為了讓 async fucntion 裡面的 await _md5(...) 前面的 await 能正常使用。
          */
-
-        //檢視各個 li
         $(html).find('li.Ckrof').each(async function(index, element){
             if ( $(element).find('img.FFVAD').length > 0 ){
                 //取得 img 連結
                 let imgSrc = $(element).find('img.FFVAD').attr('src');
-                
+
+                /**
+                 * 結合雜湊功能，透過 imgSrc 雜湊後，作為 objTmp 的 key，
+                 * 再將 imgSrc 的值，視為 value 整合在 objTmp[key] 當中。
+                 */
+
                 //雜湊 img 連結，作為 dict 的 key
                 let strKey = await _md5(imgSrc);
 
@@ -203,6 +223,11 @@ async function _parseMultipleItems(){
                 //取得 video 連結
                 let videoSrc = $(element).find('video.tWeCl').attr('src');
                 
+                /**
+                 * 結合雜湊功能，透過 videoSrc 雜湊後，作為 objTmp 的 key，
+                 * 再將 videoSrc 的值，視為 value 整合在 objTmp[key] 當中。
+                 */
+
                 //雜湊 video 連結，作為 dict 的 key
                 let strKey = await _md5(videoSrc)
                 
@@ -212,7 +237,7 @@ async function _parseMultipleItems(){
         });
 
         //強制等待
-        await nightmare.wait(2000);
+        await nightmare.wait(1000);
 
         //呼叫自己，繼續按「向右」按鈕，直到沒有「向右」按鈕，才結束
         await _parseMultipleItems();
