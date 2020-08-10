@@ -32,8 +32,7 @@ let url = `https://zh.wikipedia.org/wiki/%E4%B8%89%E5%9B%BD%E6%BC%94%E4%B9%89%E8
             `-H "User-Agent: ${headers['User-Agent']}" ` + 
             `-H "Accept-Language: ${headers['Accept-Language']}" ` + 
             `-H "Accept: ${headers['Accept']}" ` + 
-            `-H "Cookie: ${headers['Cookie']}" `, 
-            {encoding: 'utf8', maxBuffer: 500 * 1024});
+            `-H "Cookie: ${headers['Cookie']}" `);
 
         //定義姓名、人物連結、字、籍貫、列傳、首回、末回、史構
         let wikiName = '', wikiLink = '', wikiAlias = '', 
@@ -48,28 +47,36 @@ let url = `https://zh.wikipedia.org/wiki/%E4%B8%89%E5%9B%BD%E6%BC%94%E4%B9%89%E8
             //走訪取得每一個人物的表格資料
             $(element).find('tbody tr').each((idx, elm) => {
                 //姓名
-                wikiName = $(elm).find('td:eq(0)').text();
+                // wikiName = $(elm).find('td').eq(0).text();
+                wikiName = $(elm).find('td:nth-of-type(1)').text();
 
                 //維基百科連結
-                wikiLink = $(elm).find('td:eq(0)').find('a').attr('href');
+                // wikiLink = $(elm).find('td').eq(0).find('a').attr('href');
+                wikiLink = $(elm).find('td:nth-of-type(1)').find('a').attr('href');
 
                 //字
-                wikiAlias = $(elm).find('td:eq(1)').text();
+                // wikiAlias = $(elm).find('td').eq(1).text();
+                wikiAlias = $(elm).find('td:nth-of-type(2)').text();
 
                 //籍貫
-                wikiBirthplace = $(elm).find('td:eq(2)').text();
+                // wikiBirthplace = $(elm).find('td').eq(2).text();
+                wikiBirthplace = $(elm).find('td:nth-of-type(3)').text();
 
                 //列傳
-                wikiDescription = $(elm).find('td:eq(3)').text();
+                // wikiDescription = $(elm).find('td').eq(3).text();
+                wikiDescription = $(elm).find('td:nth-of-type(4)').text();
 
                 //首回
-                wikiBeginEpisode = $(elm).find('td:eq(4)').text();
+                // wikiBeginEpisode = $(elm).find('td').eq(4).text();
+                wikiBeginEpisode = $(elm).find('td:nth-of-type(5)').text();
 
                 //末回
-                wikiEndEpisode = $(elm).find('td:eq(5)').text();
+                // wikiEndEpisode = $(elm).find('td').eq(5).text();
+                wikiEndEpisode = $(elm).find('td:nth-of-type(6)').text();
 
                 //史構
-                wikiIdentity = $(elm).find('td:eq(6)').text();
+                // wikiIdentity = $(elm).find('td').eq(6).text();
+                wikiIdentity = $(elm).find('td:nth-of-type(7)').text();
 
                 //若是姓名變數沒有文字，則跳到下一個元素去執行
                 if( wikiName === '' ) return;
