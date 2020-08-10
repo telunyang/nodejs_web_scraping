@@ -197,12 +197,14 @@ async function close(){
     });
 }
 
+//透過迴圈特性，將陣列中的各個 function 透過 await 逐一執行
 async function asyncArray(functionList){
     for(let func of functionList){
         await func();
     }
 }
 
+//IIFE
 (
     async function (){
         await asyncArray([

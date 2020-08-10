@@ -229,10 +229,10 @@ async function _parseMultipleItems(){
                  */
 
                 //雜湊 video 連結，作為 dict 的 key
-                let strKey = await _md5(videoSrc)
+                let strKey = await _md5(videoSrc);
                 
                 //建立 video 的 key-value
-                objTmp[strKey] = videoSrc
+                objTmp[strKey] = videoSrc;
             }
         });
 
@@ -267,11 +267,14 @@ async function download(){
     let strJson = await fs.readFileSync('downloads/ig.json', { encoding: 'utf-8' });
     let arr = JSON.parse(strJson);
 
+    //迭代存取列陣中的每一個物件
     for(let obj of arr){
+        //走訪物件中 content 屬性裡的每個 key 底下代表的 value，其 value 是圖片或影片的連結 
         for(let key in obj['content']){
             let regex = /https?:\/\/\S+.\/(\S+\.(jpe?g|mp4))/g;
             let match = regex.exec(obj['content'][key]);
             let dl_link = obj['content'][key];
+            
             console.log(`下載檔名: ${match[1]}`);
             await exec(`curl -k -X GET "${dl_link}" -o "downloads/ig/${match[1]}"`);
         }
@@ -285,6 +288,7 @@ async function asyncArray(functionList){
     }
 }
 
+//IIFE
 (
     async function (){
         await asyncArray([
