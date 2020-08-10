@@ -46,7 +46,7 @@ async function search(){
     .click('button.category-picker-btn-primary')
     .wait(2000)
     .click('button.btn.btn-primary.js-formCheck')
-    .catch((err) => {
+    .catch(function(err) {
         throw err;
     });
 }
@@ -77,6 +77,7 @@ async function scrollPage(){
         innerHeightOfWindow = await nightmare.evaluate(function() {
             return document.documentElement.scrollHeight;
         });
+        
         //增加滾動距離的數值
         totalOffset += 500;
 
@@ -188,7 +189,7 @@ async function getDetailInfo(){
         let html = await nightmare
         .goto(arrLink[i].positionLink)
         .wait('div.job-description-table.row div.row.mb-2')
-        .evaluate(() => {
+        .evaluate(function() {
             return document.documentElement.innerHTML;
         });
 
