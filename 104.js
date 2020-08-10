@@ -74,7 +74,7 @@ async function scrollPage(){
 
     while(totalOffset <= innerHeightOfWindow){
         //取得視窗內 document 區域的內部高度
-        innerHeightOfWindow = await nightmare.evaluate(() => {
+        innerHeightOfWindow = await nightmare.evaluate(function() {
             return document.documentElement.scrollHeight;
         });
         //增加滾動距離的數值
@@ -109,19 +109,23 @@ async function parseHtml(){
     console.log('分析、整理、收集重要資訊');
 
     //取得滾動後，得到動態產生結果的 html 元素
-    let html = await nightmare.evaluate(() => {
+    let html = await nightmare.evaluate(function() {
         return document.documentElement.innerHTML;
     });
-
-    //存放主要資訊的物件
-    let obj = {};
 
     //將重要資掀放到陣列中，以便後續儲存
     $(html)
     .find('div#js-job-content article')
-    .each((index, element) => {
+    .each(function(index, element) {
         //取得主要資料的 css selector 區域，作為 jQuery 物件
         let elm = $(element).find('div.b-block__left');
+
+        /**
+         * element 是 DOM element，透過 $(element) 變成了 jQuery 物件，
+         * 以下的 elm，會發現沒有使用 $(elm) 包起來，
+         * 是因為 elm 本身是 透過 $(element).find('css selector') 所回傳的 jQuery 單一物件或集合，
+         * 本質上依然是 jQuery 物件，所以 elm 不用加上 $(...) 來包覆
+         */
 
         //職缺名稱
         let position = elm.find('h2.b-tit a.js-job-link').text();
@@ -142,24 +146,43 @@ async function parseHtml(){
         let category = elm.find('ul.b-list-inline.b-clearfix:nth-of-type(1) li:nth-of-type(3)').text(); 
 
         //將所有資料以 key-value 格式儲存
-        obj.keyword = strKeyword;
-        obj.position = position;
-        obj.positionLink = positionLink;
-        obj.location = location;
-        obj.companyName = companyName;
-        obj.companyLink = companyLink;
-        obj.category = category;
+        let obj = {
+            keyword = strKeyword,
+            position = position,
+            positionLink = positionLink,
+            location = location,
+            companyName = companyName,
+            companyLink = companyLink,
+            category = category
+        };
+        //另一種作法
+        // let obj = {};
+        // obj.keyword = strKeyword;
+        // obj.position = position;
+        // obj.positionLink = positionLink;
+        // obj.location = location;
+        // obj.companyName = companyName;
+        // obj.companyLink = companyLink;
+        // obj.category = category;
 
         //放到主要陣列中
         arrLink.push(obj);
 
-        //儲存資訊用的物件化(清空資料)
-        obj = {};
+        /**
+         * 提醒:
+         * 因為 arrLink.push() 了許多 obj (物件)，
+         * arrLink[0] 代表 arrLink 中第 0 個索引的東西，就是第 1 個物件
+         * arrLink[1] 代表第 2 個，
+         * arrLink[2] 代表第 3 個，
+         * arrLink[3] 代表第 4 個
+         * 依此類推
+         */
     });
 }
 
 //接續先前整理的陣列，再繼續往下取得進階資訊
 async function getDetailInfo(){
+    //走訪 arrLink 底下的每一個 obj
     for(let i = 0; i < arrLink.length; i++){
         //前往影片播放頁面，並取得頁面 html 字串
         let html = await nightmare
@@ -181,6 +204,15 @@ async function getDetailInfo(){
         .each(function(index, element){
             arrTmpConcat.push($(element).text().trim());
         });
+
+        /**
+         * array.join("字元或字串"):
+         * 將陣列(array)所有的值，以「,」符號連結後，變成字串
+         * 例如
+         * let arr = ["工程師","設計師","管理師"];
+         * console.log( arr.join("_") )
+         * 印出「工程師_設計師_管理師」
+         */
         positionCategory = arrTmpConcat.join(',');
         
 
@@ -192,7 +224,7 @@ async function getDetailInfo(){
 
 //關閉 nightmare
 async function close(){
-    await nightmare.end(() => {
+    await nightmare.end(function() {
         console.log(`關閉 nightmare`);
     });
 }
@@ -215,7 +247,7 @@ async function asyncArray(functionList){
             parseHtml,
             getDetailInfo,
             close
-        ]).then(async () =>{
+        ]).then(async function() {
             console.dir(arrLink, {depth: null});
             await fs.writeFileSync(`downloads/104.json`, JSON.stringify(arrLink, null, 4));
             console.log('Done');
