@@ -130,7 +130,7 @@ async function parseHtml(){
         let positionLink = 'https:' + elm.find('h2.b-tit a.js-job-link').attr('href'); 
 
         //上班地點
-        let location = elm.find('ul.b-list-inline.b-clearfix.job-list-intro.b-content li:eq(0)').text(); 
+        let location = elm.find('ul.b-list-inline.b-clearfix.job-list-intro.b-content li:nth-of-type(1)').text(); 
 
         //公司名稱
         let companyName = elm.find('ul.b-list-inline.b-clearfix li a').text().trim(); 
@@ -139,7 +139,7 @@ async function parseHtml(){
         let companyLink = 'https:' + elm.find('ul.b-list-inline.b-clearfix li a').attr('href'); 
 
         //產業別
-        let category = elm.find('ul.b-list-inline.b-clearfix li:eq(2)').text(); 
+        let category = elm.find('ul.b-list-inline.b-clearfix:nth-of-type(1) li:nth-of-type(3)').text(); 
 
         //將所有資料以 key-value 格式儲存
         obj.keyword = strKeyword;
@@ -171,7 +171,7 @@ async function getDetailInfo(){
 
         //取得上班地點
         let positionPlace = $(html)
-        .find('div.job-description-table.row div.row.mb-2:eq(3) p.t3.mb-0')
+        .find('div.job-description-table.row div.row.mb-2:nth-of-type(4) p.t3.mb-0')
         .text().trim();
 
         //取得職務類別
@@ -203,20 +203,20 @@ async function asyncArray(functionList){
     }
 }
 
-try {
-    asyncArray([
-        init,
-        search, 
-        setJobType, 
-        scrollPage, 
-        parseHtml,
-        getDetailInfo,
-        close
-    ]).then(async () =>{
-        console.dir(arrLink, {depth: null});
-        await fs.writeFileSync(`downloads/104.json`, JSON.stringify(arrLink, null, 4));
-        console.log('Done');
-    });
-} catch (err){
-    throw err;
-}
+(
+    async function (){
+        await asyncArray([
+            init,
+            search, 
+            setJobType, 
+            scrollPage, 
+            parseHtml,
+            getDetailInfo,
+            close
+        ]).then(async () =>{
+            console.dir(arrLink, {depth: null});
+            await fs.writeFileSync(`downloads/104.json`, JSON.stringify(arrLink, null, 4));
+            console.log('Done');
+        });
+    }
+)();
