@@ -32,57 +32,53 @@ let url = `https://zh.wikipedia.org/wiki/%E4%B8%89%E5%9B%BD%E6%BC%94%E4%B9%89%E8
             `-H "User-Agent: ${headers['User-Agent']}" ` + 
             `-H "Accept-Language: ${headers['Accept-Language']}" ` + 
             `-H "Accept: ${headers['Accept']}" ` + 
-            `-H "Cookie: ${headers['Cookie']}" `);
+            `-H "Cookie: ${headers['Cookie']}" `, 
+            {maxBuffer: 1024 * 1024, encoding: "utf8"});
 
         //定義姓名、人物連結、字、籍貫、列傳、首回、末回、史構
         let wikiName = '', wikiLink = '', wikiAlias = '', 
             wikiBirthplace = '', wikiDescription = '', wikiBeginEpisode = '', 
             wikiEndEpisode = '', wikiIdentity = '';
-        
-        //物件變數，用來放置人物相關資訊
-        let obj = {};
+
+        /**
+         * $(html).find('css_selector').each(function(索引值, DOM元素){ ... })
+         * 索引值: 從 0 開始，集合中的第一個元素 index 為 0，第二個為 1，依此類推
+         * DOM元素: 單純的 html 元素，要透過 $(DOM元素) 轉成 jQuery 物件
+         */
 
         //取得人物姓名的表格
         $(stdout).find('table.wikitable.sortable').each((index, element) => {
             //走訪取得每一個人物的表格資料
             $(element).find('tbody tr').each((idx, elm) => {
                 //姓名
-                // wikiName = $(elm).find('td').eq(0).text();
                 wikiName = $(elm).find('td:nth-of-type(1)').text();
 
                 //維基百科連結
-                // wikiLink = $(elm).find('td').eq(0).find('a').attr('href');
                 wikiLink = $(elm).find('td:nth-of-type(1)').find('a').attr('href');
 
                 //字
-                // wikiAlias = $(elm).find('td').eq(1).text();
                 wikiAlias = $(elm).find('td:nth-of-type(2)').text();
 
                 //籍貫
-                // wikiBirthplace = $(elm).find('td').eq(2).text();
                 wikiBirthplace = $(elm).find('td:nth-of-type(3)').text();
 
                 //列傳
-                // wikiDescription = $(elm).find('td').eq(3).text();
                 wikiDescription = $(elm).find('td:nth-of-type(4)').text();
 
                 //首回
-                // wikiBeginEpisode = $(elm).find('td').eq(4).text();
                 wikiBeginEpisode = $(elm).find('td:nth-of-type(5)').text();
 
                 //末回
-                // wikiEndEpisode = $(elm).find('td').eq(5).text();
                 wikiEndEpisode = $(elm).find('td:nth-of-type(6)').text();
 
                 //史構
-                // wikiIdentity = $(elm).find('td').eq(6).text();
                 wikiIdentity = $(elm).find('td:nth-of-type(7)').text();
 
                 //若是姓名變數沒有文字，則跳到下一個元素去執行
                 if( wikiName === '' ) return;
 
-                //用物件整理人物資訊
-                obj = {
+                //物件變數，用來放置人物相關資訊
+                let obj = {
                     name: wikiName,
                     link: 'https://zh.wikipedia.org' + wikiLink,
                     alias: wikiAlias,
@@ -100,9 +96,6 @@ let url = `https://zh.wikipedia.org/wiki/%E4%B8%89%E5%9B%BD%E6%BC%94%E4%B9%89%E8
 
                 //加入陣列變數
                 arrLink.push(obj);
-
-                //物件初始化
-                obj = {};
             });
         });
 
